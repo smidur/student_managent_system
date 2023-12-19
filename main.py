@@ -24,9 +24,13 @@ class MainWindow(QMainWindow):
         # the next srting is for MacOS only!
         # about_action.setMenuRole(QAction.MenuRole.NoRole)
 
+        search_action = QAction("Search", self)
+        search_action.triggered.connect(self.search)
+        help_menu_item.addAction(search_action)
+
         self.table = QTableWidget()
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(("ID", "Name", "Course", "Mobile"))
+        self.table.setHorizontalHeaderLabels(("ID", "Name", "Course", "Phone"))
         self.table.verticalHeader().setVisible(False)
         self.setCentralWidget(self.table)
 
@@ -44,12 +48,16 @@ class MainWindow(QMainWindow):
         dialog = InsertDialog()
         dialog.exec()
 
+    def search(self):
+        search = SearchDialog()
+        search.exec()
+
 
 class InsertDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Student Management System")
-        self.setFixedWidth(200)
+        self.setFixedWidth(400)
         self.setFixedHeight(200)
 
         layout = QVBoxLayout()
@@ -90,6 +98,36 @@ class InsertDialog(QDialog):
         cursor.close()
         connection.close()
         stu_man_sys.load_data()
+
+
+class SearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Student Management System")
+        self.setFixedWidth(400)
+        self.setFixedHeight(100)
+
+        grid = QGridLayout()
+
+        # add search field
+        search_line_edit = QLineEdit()
+        search_line_edit.setPlaceholderText("Search...")
+        grid.addWidget(search_line_edit, 0, 0)
+
+        columns_options = ["IDs", "Names", "Courses", "Phones"]
+        columns_combo = QComboBox()
+        columns_combo.addItems(columns_options)
+        grid.addWidget(columns_combo, 0, 1)
+
+        search_button = QPushButton("Search")
+        search_button.clicked.connect(self.search)
+        search_button.pressed.connect(self.search)
+        grid.addWidget(search_button, 1, 1)
+
+        self.setLayout(grid)
+
+    def search(self):
+        pass
 
 
 app = QApplication(sys.argv)
