@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit,
                              QGridLayout, QPushButton, QMainWindow, QDialog, QTableWidget,
                              QTableWidgetItem, QDialog, QVBoxLayout, QComboBox)
 from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt
 import sys
 import sqlite3
 
@@ -10,9 +11,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Student Management System")
+        self.setMinimumSize(777, 707)
 
         file_menu_item = self.menuBar().addMenu("&File")
+        edit_menu_item = self.menuBar().addMenu("&Edit")
         help_menu_item = self.menuBar().addMenu("&Help")
+
 
         add_student_action = QAction("Add Student", self)
         add_student_action.triggered.connect(self.insert)
@@ -26,7 +30,7 @@ class MainWindow(QMainWindow):
 
         search_action = QAction("Search", self)
         search_action.triggered.connect(self.search)
-        help_menu_item.addAction(search_action)
+        edit_menu_item.addAction(search_action)
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
@@ -56,7 +60,7 @@ class MainWindow(QMainWindow):
 class InsertDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Student Management System")
+        self.setWindowTitle("Insert Student Data")
         self.setFixedWidth(400)
         self.setFixedHeight(200)
 
@@ -97,27 +101,34 @@ class InsertDialog(QDialog):
         connection.commit()
         cursor.close()
         connection.close()
-        stu_man_sys.load_data()
+        main_window.load_data()
 
 
 class SearchDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Student Management System")
+        self.setWindowTitle("Search data")
         self.setFixedWidth(400)
         self.setFixedHeight(100)
 
         grid = QGridLayout()
 
         # add search field
-        search_line_edit = QLineEdit()
-        search_line_edit.setPlaceholderText("Search...")
-        grid.addWidget(search_line_edit, 0, 0)
+        self.search_line_edit = QLineEdit()
+        self.search_line_edit.setPlaceholderText("Search...")
+        grid.addWidget(self.search_line_edit, 0, 0)
 
         columns_options = ["IDs", "Names", "Courses", "Phones"]
-        columns_combo = QComboBox()
-        columns_combo.addItems(columns_options)
-        grid.addWidget(columns_combo, 0, 1)
+        self.columns_combo = QComboBox()
+        self.columns_combo.addItems(columns_options)
+        self.columns_combo.setCurrentIndex(1)
+        grid.addWidget(self.columns_combo, 0, 1)
+
+        refresh_table_button = QPushButton("Refresh")
+        refresh_table_button.setFixedWidth(100)
+        refresh_table_button.clicked.connect(self.refresh_table)
+        refresh_table_button.pressed.connect(self.refresh_table)
+        grid.addWidget(refresh_table_button, 1, 0)
 
         search_button = QPushButton("Search")
         search_button.clicked.connect(self.search)
@@ -127,11 +138,42 @@ class SearchDialog(QDialog):
         self.setLayout(grid)
 
     def search(self):
-        pass
+        column_name = self.columns_combo.currentText()
+        search_line = self.search_line_edit.text()
+
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        result = ""
+
+        if column_name[:-1] == "Name":
+            result = cursor.execute("SELECT * FROM students WHERE name = ?",
+                                    (search_line,))
+        elif column_name[:-1] == "Course":
+            result = cursor.execute("SELECT * FROM students WHERE course = ?",
+                                    (search_line,))
+        elif column_name[:-1] == "Phone":
+            result = cursor.execute("SELECT * FROM students WHERE mobile = ?",
+                                    (search_line,))
+        elif column_name[:-1] == "ID":
+            result = cursor.execute("SELECT * FROM students WHERE id = ?",
+                                    (search_line,))
+
+        items = main_window.table.findItems(search_line, Qt.MatchFlag.MatchFixedString)
+
+        for item in items:
+            main_window.table.item(item.row(), 1).setSelected(True)
+            main_window.table.item(item.row(), 2).setSelected(True)
+            main_window.table.item(item.row(), 3).setSelected(True)
+
+        cursor.close()
+        connection.close()
+
+    def refresh_table(self):
+        main_window.load_data()
 
 
 app = QApplication(sys.argv)
-stu_man_sys = MainWindow()
-stu_man_sys.show()
-stu_man_sys.load_data()
+main_window = MainWindow()
+main_window.show()
+main_window.load_data()
 sys.exit(app.exec())
