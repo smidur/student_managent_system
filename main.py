@@ -17,7 +17,6 @@ class MainWindow(QMainWindow):
         edit_menu_item = self.menuBar().addMenu("&Edit")
         help_menu_item = self.menuBar().addMenu("&Help")
 
-
         add_student_action = QAction("Add Student", self)
         add_student_action.triggered.connect(self.insert)
         file_menu_item.addAction(add_student_action)
@@ -31,6 +30,10 @@ class MainWindow(QMainWindow):
         search_action = QAction("Search", self)
         search_action.triggered.connect(self.search)
         edit_menu_item.addAction(search_action)
+
+        refresh_action = QAction("Reload Table", self)
+        refresh_action.triggered.connect(self.load_data)
+        edit_menu_item.addAction(refresh_action)
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
@@ -126,8 +129,8 @@ class SearchDialog(QDialog):
 
         refresh_table_button = QPushButton("Refresh")
         refresh_table_button.setFixedWidth(100)
-        refresh_table_button.clicked.connect(self.refresh_table)
-        refresh_table_button.pressed.connect(self.refresh_table)
+        refresh_table_button.clicked.connect(main_window.load_data)
+        refresh_table_button.pressed.connect(main_window.load_data)
         grid.addWidget(refresh_table_button, 1, 0)
 
         search_button = QPushButton("Search")
@@ -167,9 +170,6 @@ class SearchDialog(QDialog):
 
         cursor.close()
         connection.close()
-
-    def refresh_table(self):
-        main_window.load_data()
 
 
 app = QApplication(sys.argv)
