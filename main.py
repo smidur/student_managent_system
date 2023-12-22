@@ -24,6 +24,7 @@ class MainWindow(QMainWindow):
 
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
+        about_action.triggered.connect(self.about)
 
         # the next srting is for MacOS only!
         # about_action.setMenuRole(QAction.MenuRole.NoRole)
@@ -100,6 +101,30 @@ class MainWindow(QMainWindow):
     def delete(self):
         dialog = DeleteDialog()
         dialog.exec()
+
+    def about(self):
+        dialog = AboutDialog()
+        dialog.exec()
+
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")
+
+        style = """
+            margin-top: 20px;
+            text-align: justify;
+            padding-right: 16px;
+            font-size: 16px;
+        """
+        self.setStyleSheet(style)
+
+        text = """This app was created during the course "The Python Mega Course"."""
+        header = "Feel free to modify and reuse this app."
+
+        self.setInformativeText(header)
+        self.setText(text)
 
 
 class EditDialog(QDialog):
